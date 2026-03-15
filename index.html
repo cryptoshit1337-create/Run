@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Марафон 4 июля — Трекер</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --border: #2a2a2a;
+    --accent: #e8ff00;
+    --accent2: #ff4d00;
+    --text: #e8e4dc;
+    --muted: #666;
+    --easy: #4ade80;
+    --long: #60a5fa;
+    --rest: #444;
+    --done: #22c55e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding: 28px 32px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .header-left h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(42px, 7vw, 80px);
+    line-height: 0.9;
+    letter-spacing: 2px;
+    color: var(--text);
+  }
+  .header-left h1 span { color: var(--accent); }
+  .header-left .subtitle {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 8px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .countdown-box {
+    text-align: right;
+  }
+  .countdown-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(48px, 8vw, 96px);
+    color: var(--accent);
+    line-height: 1;
+  }
+  .countdown-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  /* PROGRESS BAR */
+  .progress-section {
+    padding: 16px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .progress-bar-wrap {
+    flex: 1;
+    min-width: 200px;
+    height: 6px;
+    background: var(--border);
+    border-radius: 0;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.5s ease;
+  }
+  .progress-stats {
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+  }
+  .stat {
+    text-align: center;
+  }
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--text);
+    line-height: 1;
+  }
+  .stat-num.accent { color: var(--accent); }
+  .stat-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    gap: 0;
+  }
+  .tab {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 14px 20px;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* MAIN CONTENT */
+  .content { padding: 24px 32px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* LOG WORKOUT */
+  .log-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    max-width: 900px;
+  }
+  @media(max-width: 650px) { .log-section { grid-template-columns: 1fr; } }
+
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .input-group label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .input-group input, .input-group select, .input-group textarea {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 15px;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    border-radius: 0;
+    -webkit-appearance: none;
+  }
+  .input-group input:focus, .input-group select:focus, .input-group textarea:focus {
+    border-color: var(--accent);
+  }
+  .input-group textarea { resize: vertical; min-height: 80px; }
+  .input-group select option { background: var(--surface); }
+
+  .btn-log {
+    grid-column: 1 / -1;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 3px;
+    padding: 14px 32px;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-top: 4px;
+  }
+  .btn-log:hover { background: #fff; }
+  .btn-log:active { transform: scale(0.98); }
+
+  /* HISTORY */
+  .history-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .workout-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 14px 18px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 16px;
+    align-items: center;
+    transition: border-color 0.2s;
+  }
+  .workout-card:hover { border-color: #444; }
+  .workout-type-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .badge-easy { color: var(--easy); border-color: var(--easy); }
+  .badge-long { color: var(--long); border-color: var(--long); }
+  .badge-tempo { color: var(--accent2); border-color: var(--accent2); }
+  .badge-rest { color: var(--muted); border-color: var(--muted); }
+  .workout-info { min-width: 0; }
+  .workout-date {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .workout-desc {
+    font-size: 14px;
+    color: var(--text);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .workout-km {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--accent);
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .workout-pace {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-align: right;
+  }
+  .delete-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    line-height: 1;
+    transition: color 0.2s;
+    grid-column: 4;
+  }
+  .delete-btn:hover { color: var(--accent2); }
+
+  /* FEELING BUTTONS */
+  .feel-group { grid-column: 1/-1; display: flex; flex-direction: column; gap: 10px; }
+  .feel-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .feel-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .feel-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .feel-btn:hover { border-color: #555; color: var(--text); }
+  .feel-btn.selected { color: #000; border-color: transparent; }
+  .feel-btn[data-feel="superlight"].selected { background: #4ade80; }
+  .feel-btn[data-feel="easy"].selected { background: #86efac; }
+  .feel-btn[data-feel="medium"].selected { background: #fbbf24; }
+  .feel-btn[data-feel="hard"].selected { background: #f97316; }
+  .feel-btn[data-feel="veryhard"].selected { background: #ef4444; color: #fff; }
+  .feel-btn[data-legs="fresh"].selected { background: #60a5fa; }
+  .feel-btn[data-legs="ok"].selected { background: #818cf8; color: #fff; }
+  .feel-btn[data-legs="heavy"].selected { background: #a78bfa; color: #fff; }
+
+  /* FEELING BADGE in history */
+  .feel-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 2px 7px;
+    font-weight: 600;
+    display: inline-block;
+    margin-right: 4px;
+  }
+  .feel-superlight { background: #4ade80; color: #000; }
+  .feel-easy-badge { background: #86efac; color: #000; }
+  .feel-medium { background: #fbbf24; color: #000; }
+  .feel-hard { background: #f97316; color: #000; }
+  .feel-veryhard { background: #ef4444; color: #fff; }
+  .legs-fresh { background: #60a5fa; color: #000; }
+  .legs-ok { background: #818cf8; color: #fff; }
+  .legs-heavy { background: #a78bfa; color: #fff; }
+
+  .empty-state {
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1px;
+    padding: 32px 0;
+    text-align: center;
+    border: 1px dashed var(--border);
+  }
+
+  /* PLAN VIEW */
+  .phases { display: flex; flex-direction: column; gap: 32px; }
+  .phase {
+    border-left: 3px solid var(--border);
+    padding-left: 20px;
+  }
+  .phase.current { border-left-color: var(--accent); }
+  .phase-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .phase-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: var(--text);
+    letter-spacing: 2px;
+  }
+  .phase-dates {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+  .phase-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    padding: 2px 8px;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+  .weeks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+  }
+  .week-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 14px 16px;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .week-card.current-week { border-color: var(--accent); }
+  .week-card.completed { border-color: #2a3a2a; }
+  .week-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .week-km {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    color: var(--text);
+    line-height: 1.1;
+  }
+  .week-km span {
+    font-size: 14px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--muted);
+    font-weight: 300;
+  }
+  .week-focus {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+    line-height: 1.4;
+  }
+  .week-done-bar {
+    height: 3px;
+    background: var(--border);
+    margin-top: 10px;
+  }
+  .week-done-fill {
+    height: 100%;
+    background: var(--done);
+    transition: width 0.3s;
+  }
+  .current-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--accent);
+    color: #000;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 1px;
+    padding: 2px 6px;
+  }
+
+  /* TIPS PANEL */
+  .tips-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .tip-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 18px 20px;
+  }
+  .tip-icon { font-size: 24px; margin-bottom: 10px; }
+  .tip-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    color: var(--accent);
+  }
+  .tip-text { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .tip-text strong { color: var(--text); }
+
+  /* AI FEEDBACK */
+  .ai-section { max-width: 700px; }
+  .ai-input-row { display: flex; gap: 10px; margin-bottom: 16px; }
+  .ai-input-row input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    padding: 10px 14px;
+    outline: none;
+  }
+  .ai-input-row input:focus { border-color: var(--accent); }
+  .btn-ask {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 2px;
+    padding: 10px 22px;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+  .btn-ask:hover { background: #fff; }
+  .btn-ask:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+  .ai-chat { display: flex; flex-direction: column; gap: 12px; }
+  .ai-msg {
+    padding: 14px 18px;
+    font-size: 14px;
+    line-height: 1.65;
+    border-left: 3px solid;
+  }
+  .ai-msg.user { background: var(--surface2); border-color: var(--muted); color: var(--muted); }
+  .ai-msg.assistant { background: var(--surface); border-color: var(--accent); color: var(--text); }
+  .ai-msg.loading { border-color: var(--border); color: var(--muted); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+  .dots { display: inline-block; }
+  .dots::after { content: '...'; animation: dots 1.2s steps(4, end) infinite; }
+  @keyframes dots { 0%,20%{content:'.'} 40%{content:'..'} 60%,100%{content:'...'} }
+
+  /* NOTIFICATION */
+  .notif {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--accent);
+    color: #000;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1px;
+    padding: 12px 20px;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 100;
+    pointer-events: none;
+  }
+  .notif.show { transform: translateY(0); opacity: 1; }
+
+  /* responsive */
+  @media(max-width: 500px) {
+    .header, .progress-section, .tabs, .content { padding-left: 16px; padding-right: 16px; }
+    .tab { padding: 12px 12px; font-size: 9px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>МАРАФОН<br><span>4 ИЮЛЯ</span></h1>
+    <div class="subtitle">42.195 KM · ЦЕЛЬ: 5:30 · ТЕМП: 7:50/KM</div>
+  </div>
+  <div class="countdown-box">
+    <div class="countdown-num" id="countdown">—</div>
+    <div class="countdown-label">дней до старта</div>
+  </div>
+</div>
+
+<div class="progress-section">
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+  </div>
+  <div class="progress-stats">
+    <div class="stat">
+      <div class="stat-num accent" id="totalKm">0</div>
+      <div class="stat-label">км пробежано</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="totalRuns">0</div>
+      <div class="stat-label">тренировок</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="currentWeekKm">0</div>
+      <div class="stat-label">км эта неделя</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="longestRun">0</div>
+      <div class="stat-label">макс. пробежка</div>
+    </div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('log')">Добавить</button>
+  <button class="tab" onclick="switchTab('history')">История</button>
+  <button class="tab" onclick="switchTab('plan')">План</button>
+  <button class="tab" onclick="switchTab('tips')">Советы</button>
+  <button class="tab" onclick="switchTab('coach')">Коуч ИИ</button>
+</div>
+
+<div class="content">
+
+  <!-- LOG -->
+  <div class="tab-panel active" id="tab-log">
+    <div class="log-section">
+      <div class="input-group">
+        <label>Дата</label>
+        <input type="date" id="wDate">
+      </div>
+      <div class="input-group">
+        <label>Тип</label>
+        <select id="wType">
+          <option value="easy">Лёгкий бег</option>
+          <option value="long">Длинная пробежка</option>
+          <option value="tempo">Темповая</option>
+          <option value="rest">Отдых / кросстренинг</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>Дистанция (км)</label>
+        <input type="number" id="wKm" placeholder="5.0" step="0.1" min="0">
+      </div>
+      <div class="input-group">
+        <label>Средний темп (мм:сс)</label>
+        <input type="text" id="wPace" placeholder="7:00">
+      </div>
+      <div class="feel-group">
+        <div class="feel-label">Ощущение</div>
+        <div class="feel-row" id="feelRow">
+          <button class="feel-btn" data-feel="superlight" onclick="selectFeel(this,'feel')">⚡ Супер легко</button>
+          <button class="feel-btn" data-feel="easy" onclick="selectFeel(this,'feel')">😊 Легко</button>
+          <button class="feel-btn" data-feel="medium" onclick="selectFeel(this,'feel')">😐 Средне</button>
+          <button class="feel-btn" data-feel="hard" onclick="selectFeel(this,'feel')">😤 Тяжело</button>
+          <button class="feel-btn" data-feel="veryhard" onclick="selectFeel(this,'feel')">💀 Очень тяжело</button>
+        </div>
+        <div class="feel-label" style="margin-top:4px">Ноги</div>
+        <div class="feel-row" id="legsRow">
+          <button class="feel-btn" data-legs="fresh" onclick="selectFeel(this,'legs')">🦵 Свежие</button>
+          <button class="feel-btn" data-legs="ok" onclick="selectFeel(this,'legs')">👌 Нормально</button>
+          <button class="feel-btn" data-legs="heavy" onclick="selectFeel(this,'legs')">🪨 Забитые</button>
+        </div>
+      </div>
+      <button class="btn-log" onclick="logWorkout()">ЗАПИСАТЬ ТРЕНИРОВКУ</button>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="tab-panel" id="tab-history">
+    <div id="historyList"></div>
+  </div>
+
+  <!-- PLAN -->
+  <div class="tab-panel" id="tab-plan">
+    <div class="phases" id="planView"></div>
+  </div>
+
+  <!-- TIPS -->
+  <div class="tab-panel" id="tab-tips">
+    <div class="tips-grid">
+      <div class="tip-card">
+        <div class="tip-icon">🐢</div>
+        <div class="tip-title">Правило 80/20</div>
+        <div class="tip-text"><strong>80% тренировок — лёгкий темп</strong> (8:30–9:30/км). Ты должен спокойно разговаривать. Это главное правило марафонца. Не беги быстро — беги много.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">📈</div>
+        <div class="tip-title">Рост не более 10%</div>
+        <div class="tip-text">Еженедельный километраж увеличивай <strong>не более чем на 10%</strong>. Каждые 3–4 недели — восстановительная неделя (объём -30%). Это защита от травм.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">🏃</div>
+        <div class="tip-title">Длинная пробежка</div>
+        <div class="tip-text">Раз в неделю — длинная пробежка. Темп <strong>на 60–90 сек медленнее</strong> марафонного. Ключевая тренировка всего плана. Максимум к концу — 32–35 км.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">💧</div>
+        <div class="tip-title">Питание и вода</div>
+        <div class="tip-text">С 16+ км начинай тренироваться <strong>с гелями или едой</strong> каждые 45 мин. Марафон — это пищеварительный тест. Желудок тоже надо тренировать.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">😴</div>
+        <div class="tip-title">Сон = тренировка</div>
+        <div class="tip-text">Мышцы растут во сне. <strong>8 часов важнее</strong> дополнительной пробежки. При недосыпе — лучше пропусти тренировку, чем недоспи.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">⚡</div>
+        <div class="tip-title">Стратегия марафона</div>
+        <div class="tip-text">Первые 30 км — <strong>бегом со сдержанным темпом 7:50–8:00</strong>. Никакого ускорения в первой половине. Марафон начинается на 30-м км — там решается всё.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">🦵</div>
+        <div class="tip-title">Силовая работа</div>
+        <div class="tip-text">1–2 раза в неделю: <strong>приседания, выпады, планка, подъёмы на носки</strong>. Сильные ноги и кор — защита от травм и лучшая экономичность бега.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">📅</div>
+        <div class="tip-title">Тейпер (последние 3 нед.)</div>
+        <div class="tip-text">За 3 недели до старта <strong>объём снижается</strong> на 40–60%. Ноги должны быть свежими. Не пытайся «добрать» километры в последнюю неделю.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COACH AI -->
+  <div class="tab-panel" id="tab-coach">
+    <div class="ai-section">
+      <div class="ai-input-row">
+        <input type="text" id="aiQuestion" placeholder="Спроси тренера: самочувствие, темп, питание..." onkeydown="if(event.key==='Enter')askCoach()">
+        <button class="btn-ask" id="askBtn" onclick="askCoach()">СПРОСИТЬ</button>
+      </div>
+      <div class="ai-chat" id="aiChat">
+        <div class="ai-msg assistant">Привет! Я твой ИИ-тренер для подготовки к марафону 4 июля. Задавай любые вопросы — про тренировки, самочувствие, питание или стратегию бега. Также можешь описать последнюю тренировку и я её прокомментирую.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+// ——— DATA ———
+const RACE_DATE = new Date('2026-07-04');
+const START_DATE = new Date('2026-03-15');
+
+const PLAN = [
+  { phase: 'Фундамент', tag: 'НЕДЕЛИ 1–4', dates: '15 мар – 11 апр', weeks: [
+    { n:1, km:22, focus:'5км×3 + 8км длинная. Темп 8:30–9:00. Всё лёгко.' },
+    { n:2, km:24, focus:'5км×3 + 9км длинная. Слушай тело.' },
+    { n:3, km:27, focus:'6км×2 + 5км + 10км длинная.' },
+    { n:4, km:19, focus:'⟳ Восстановление. -30% объём. 5км×3.' },
+  ]},
+  { phase: 'Объём', tag: 'НЕДЕЛИ 5–9', dates: '12 апр – 16 мая', weeks: [
+    { n:5, km:30, focus:'7км + 6км + 5км + 12км длинная.' },
+    { n:6, km:33, focus:'8км + 6км + 5км + 14км длинная.' },
+    { n:7, km:36, focus:'8км×2 + 6км + 16км длинная.' },
+    { n:8, km:25, focus:'⟳ Восстановление. 6км×3 + 7км.' },
+    { n:9, km:38, focus:'9км×2 + 6км + 19км длинная.' },
+  ]},
+  { phase: 'Пик', tag: 'НЕДЕЛИ 10–13', dates: '17 мая – 13 июн', weeks: [
+    { n:10, km:42, focus:'10км + 8км + 6км + 22км длинная.' },
+    { n:11, km:45, focus:'10км + 8км + 6км + 25км длинная.' },
+    { n:12, km:32, focus:'⟳ Восстановление. 8км×3 + 8км.' },
+    { n:13, km:46, focus:'10км + 8км + 6км + 28км длинная.' },
+  ]},
+  { phase: 'Тейпер', tag: 'НЕДЕЛИ 14–16', dates: '14 июн – 4 июл', weeks: [
+    { n:14, km:35, focus:'8км + 6км + 5км + 16км. Свежесть важнее объёма.' },
+    { n:15, km:22, focus:'6км + 5км + 5км + 6км. Ноги свежие.' },
+    { n:16, km:10, focus:'3км + 3км + СТАРТ 🏁 Лёгкие пробежки. Отдых.' },
+  ]},
+];
+
+// ——— STORAGE ———
+const DEFAULT_WORKOUTS = [
+  { id: 2, date: '2026-03-15', type: 'easy', km: 5.05, pace: '6:55', feel: 'easy', legs: 'ok' },
+  { id: 1, date: '2026-03-11', type: 'easy', km: 5.0,  pace: '7:06', feel: 'easy', legs: 'ok' },
+];
+let workouts = JSON.parse(localStorage.getItem('marathon_workouts') || 'null');
+if (!workouts) {
+  workouts = DEFAULT_WORKOUTS;
+  localStorage.setItem('marathon_workouts', JSON.stringify(workouts));
+}
+
+function save() {
+  localStorage.setItem('marathon_workouts', JSON.stringify(workouts));
+  updateStats();
+  renderHistory();
+}
+
+// ——— COUNTDOWN ———
+function updateCountdown() {
+  const now = new Date();
+  const diff = Math.ceil((RACE_DATE - now) / 86400000);
+  document.getElementById('countdown').textContent = Math.max(0, diff);
+  const total = Math.ceil((RACE_DATE - START_DATE) / 86400000);
+  const elapsed = Math.ceil((now - START_DATE) / 86400000);
+  const pct = Math.min(100, Math.max(0, (elapsed / total) * 100));
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+// ——— STATS ———
+function updateStats() {
+  const totalKm = workouts.reduce((s, w) => s + (parseFloat(w.km) || 0), 0);
+  document.getElementById('totalKm').textContent = totalKm.toFixed(1);
+  document.getElementById('totalRuns').textContent = workouts.filter(w => w.type !== 'rest').length;
+
+  const now = new Date();
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay() + 1);
+  weekStart.setHours(0,0,0,0);
+  const weekKm = workouts
+    .filter(w => new Date(w.date) >= weekStart)
+    .reduce((s, w) => s + (parseFloat(w.km) || 0), 0);
+  document.getElementById('currentWeekKm').textContent = weekKm.toFixed(1);
+
+  const longest = workouts.reduce((m, w) => Math.max(m, parseFloat(w.km) || 0), 0);
+  document.getElementById('longestRun').textContent = longest.toFixed(1);
+}
+
+// ——— LOG WORKOUT ———
+let selectedFeel = '';
+let selectedLegs = '';
+
+function selectFeel(btn, group) {
+  const row = group === 'feel' ? 'feelRow' : 'legsRow';
+  const attr = group === 'feel' ? 'data-feel' : 'data-legs';
+  document.querySelectorAll(`#${row} .feel-btn`).forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  if (group === 'feel') selectedFeel = btn.getAttribute('data-feel');
+  else selectedLegs = btn.getAttribute('data-legs');
+}
+
+function logWorkout() {
+  const date = document.getElementById('wDate').value;
+  const type = document.getElementById('wType').value;
+  const km = document.getElementById('wKm').value;
+  const pace = document.getElementById('wPace').value;
+
+  if (!date || !km) { showNotif('Заполни дату и дистанцию'); return; }
+
+  workouts.unshift({ id: Date.now(), date, type, km: parseFloat(km), pace, feel: selectedFeel, legs: selectedLegs });
+  save();
+  document.getElementById('wKm').value = '';
+  document.getElementById('wPace').value = '';
+  document.querySelectorAll('.feel-btn').forEach(b => b.classList.remove('selected'));
+  selectedFeel = '';
+  selectedLegs = '';
+  showNotif('Тренировка записана ✓');
+  switchTab('history');
+}
+
+// ——— HISTORY ———
+const feelMeta = {
+  superlight: { label: '⚡ Супер легко', cls: 'feel-superlight' },
+  easy:       { label: '😊 Легко',       cls: 'feel-easy-badge' },
+  medium:     { label: '😐 Средне',      cls: 'feel-medium' },
+  hard:       { label: '😤 Тяжело',      cls: 'feel-hard' },
+  veryhard:   { label: '💀 Очень тяжело',cls: 'feel-veryhard' },
+};
+const legsMeta = {
+  fresh:  { label: '🦵 Свежие',    cls: 'legs-fresh' },
+  ok:     { label: '👌 Норм',      cls: 'legs-ok' },
+  heavy:  { label: '🪨 Забитые',   cls: 'legs-heavy' },
+};
+
+function renderHistory() {
+  const container = document.getElementById('historyList');
+  if (workouts.length === 0) {
+    container.innerHTML = '<div class="empty-state">ЕЩЁ НЕТ ТРЕНИРОВОК<br><small>Добавь первую на вкладке «Добавить»</small></div>';
+    return;
+  }
+  const badgeMap = { easy:'badge-easy', long:'badge-long', tempo:'badge-tempo', rest:'badge-rest' };
+  const nameMap = { easy:'Лёгкий', long:'Длинная', tempo:'Темповая', rest:'Отдых' };
+  container.innerHTML = '<div class="history-list">' + workouts.map(w => {
+    const fm = w.feel ? feelMeta[w.feel] : null;
+    const lm = w.legs ? legsMeta[w.legs] : null;
+    const badges = [
+      fm ? `<span class="feel-badge ${fm.cls}">${fm.label}</span>` : '',
+      lm ? `<span class="feel-badge ${lm.cls}">${lm.label}</span>` : '',
+    ].join('');
+    return `
+    <div class="workout-card">
+      <span class="workout-type-badge ${badgeMap[w.type]}">${nameMap[w.type]}</span>
+      <div class="workout-info">
+        <div class="workout-date">${formatDate(w.date)}</div>
+        <div class="workout-desc" style="white-space:normal;margin-top:4px">${badges || '<span style="color:var(--muted);font-size:12px">—</span>'}</div>
+      </div>
+      <div>
+        <div class="workout-km">${w.km} <small style="font-size:14px;color:var(--muted)">км</small></div>
+        ${w.pace ? `<div class="workout-pace">${w.pace}/км</div>` : ''}
+      </div>
+      <button class="delete-btn" onclick="deleteWorkout(${w.id})">×</button>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+function deleteWorkout(id) {
+  workouts = workouts.filter(w => w.id !== id);
+  save();
+}
+
+function formatDate(d) {
+  const months = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  const dt = new Date(d + 'T00:00:00');
+  return `${dt.getDate()} ${months[dt.getMonth()]} ${dt.getFullYear()}`;
+}
+
+// ——— PLAN ———
+function renderPlan() {
+  const now = new Date();
+  const weekNum = Math.ceil((now - START_DATE) / (7*86400000));
+  const container = document.getElementById('planView');
+  container.innerHTML = PLAN.map(phase => `
+    <div class="phase ${phase.weeks.some(w => w.n === weekNum) ? 'current' : ''}">
+      <div class="phase-header">
+        <span class="phase-name">${phase.phase}</span>
+        <span class="phase-dates">${phase.dates}</span>
+        <span class="phase-tag">${phase.tag}</span>
+      </div>
+      <div class="weeks-grid">
+        ${phase.weeks.map(w => {
+          const isCurrent = w.n === weekNum;
+          const isPast = w.n < weekNum;
+          return `
+          <div class="week-card ${isCurrent ? 'current-week' : ''} ${isPast ? 'completed' : ''}">
+            ${isCurrent ? '<div class="current-badge">СЕЙЧАС</div>' : ''}
+            <div class="week-num">Неделя ${w.n}</div>
+            <div class="week-km">${w.km}<span> км</span></div>
+            <div class="week-focus">${w.focus}</div>
+            <div class="week-done-bar"><div class="week-done-fill" style="width:${isPast?'100':isCurrent?'30':'0'}%"></div></div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ——— AI COACH ———
+let chatHistory = [];
+
+async function askCoach() {
+  const input = document.getElementById('aiQuestion');
+  const question = input.value.trim();
+  if (!question) return;
+
+  const btn = document.getElementById('askBtn');
+  btn.disabled = true;
+  input.value = '';
+
+  appendMsg('user', question);
+  const loadingId = appendMsg('loading', '<span class="dots"></span> Думаю');
+
+  // Build context about user's recent workouts
+  const recentWorkouts = workouts.slice(0, 5).map(w =>
+    `${w.date}: ${w.type} ${w.km}км темп ${w.pace||'?'} ощущение:${w.feel||'?'} ноги:${w.legs||'?'}`
+  ).join('\n');
+
+  const systemPrompt = `Ты опытный тренер по бегу. Помогаешь пользователю подготовиться к марафону (42,195 км) 4 июля 2026 года. 
+Текущая дата: 15 марта 2026. До старта ~111 дней.
+Профиль: вернулся к бегу 2 недели назад, сейчас бегает 5км×2, темп 7:00/км. До этого пробежал 10км летом 2024. Цель: финишировать за 5:30 (темп ~7:50/км).
+Последние тренировки пользователя:\n${recentWorkouts || 'Ещё нет тренировок'}
+Отвечай кратко, конкретно, на русском. Давай практические советы. Если что-то тревожит — честно скажи.`;
+
+  chatHistory.push({ role: 'user', content: question });
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: chatHistory
+      })
+    });
+    const data = await resp.json();
+    const reply = data.content?.[0]?.text || 'Ошибка ответа';
+    chatHistory.push({ role: 'assistant', content: reply });
+    removeMsg(loadingId);
+    appendMsg('assistant', reply);
+  } catch(e) {
+    removeMsg(loadingId);
+    appendMsg('assistant', 'Ошибка соединения. Попробуй ещё раз.');
+  }
+  btn.disabled = false;
+}
+
+let msgId = 0;
+function appendMsg(role, html) {
+  const id = 'msg' + (++msgId);
+  const chat = document.getElementById('aiChat');
+  const div = document.createElement('div');
+  div.className = `ai-msg ${role}`;
+  div.id = id;
+  div.innerHTML = html.replace(/\n/g, '<br>');
+  chat.appendChild(div);
+  div.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  return id;
+}
+function removeMsg(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+// ——— TABS ———
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    const names = ['log','history','plan','tips','coach'];
+    t.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ——— NOTIF ———
+function showNotif(msg) {
+  const n = document.getElementById('notif');
+  n.textContent = msg;
+  n.classList.add('show');
+  setTimeout(() => n.classList.remove('show'), 2500);
+}
+
+// ——— INIT ———
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('wDate').value = today;
+updateCountdown();
+updateStats();
+renderHistory();
+renderPlan();
+setInterval(updateCountdown, 60000);
+</script>
+</body>
+</html>
