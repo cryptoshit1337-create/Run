@@ -746,7 +746,7 @@ function updateStats() {
 
   const now = new Date();
   const weekStart = new Date(now);
-  weekStart.setDate(now.getDate() - now.getDay() + 1);
+  weekStart.setDate(now.getDate() - ((now.getDay() + 6) % 7));
   weekStart.setHours(0,0,0,0);
   const weekKm = workouts
     .filter(w => new Date(w.date) >= weekStart)
@@ -848,7 +848,7 @@ function formatDate(d) {
 // ——— PLAN ———
 function renderPlan() {
   const now = new Date();
-  const weekNum = Math.ceil((now - START_DATE) / (7*86400000));
+  const weekNum = Math.floor((now - START_DATE) / (7*86400000)) + 1;
   const container = document.getElementById('planView');
   container.innerHTML = PLAN.map(phase => `
     <div class="phase ${phase.weeks.some(w => w.n === weekNum) ? 'current' : ''}">
